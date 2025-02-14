@@ -1,7 +1,7 @@
 #PSYC 259 Homework 3 - Data Structure
 #For full credit, provide answers for at least 8/11 questions
 
-#List names of students collaborating with: 
+#List names of students collaborating with: Just me (Ashley)
 
 ### SETUP: RUN THIS BEFORE STARTING ----------
 
@@ -39,7 +39,13 @@ load("rs_data.RData")
 
 #ANSWER
 
+?full_join
 
+rs_joined_orig<- full_join(rs_new, rs_old, by = c("Artist", "Song"))
+print(rs_joined_orig)
+nrow(rs_joined_orig)
+
+#Because the by = variable should ideally be a variable whose values exist in both datasets, like an id variable?   
 
 ### Question 2 ---------- 
 
@@ -51,6 +57,21 @@ load("rs_data.RData")
 
 #ANSWER
 
+rs_new$Source<- "New"
+print(rs_new)
+rs_old$Source<- "Old"
+
+library(dplyr)
+?bind_rows
+
+rs_all<- bind_rows(list(rs_new, rs_old), .id = "Source")
+
+print(rs_old)
+
+rs_old$Rank <- as.integer(rs_old$Rank)
+rs_old$Year <- as.integer(rs_old$Year)
+
+print(rs_all)
 
 ### Question 3 ----------
 
@@ -62,6 +83,33 @@ load("rs_data.RData")
 # Use both functions to make all artists/song lowercase and remove any extra spaces
 
 #ANSWER
+
+?str_remove_all
+install.packages("stringr")
+library(stringr)
+
+str_remove_all(rs_all$Artist, "[The]")
+str_remove_all(rs_all$Song, "[The]")
+
+?str_replace_all
+
+str_replace_all(rs_all$Artist, "[&]", "and")
+str_replace_all(rs_all$Song, "[&]", "and")
+
+str_remove_all(rs_all$Artist, "[[:punct:]]")
+str_remove_all(rs_all$Song, "[[:punct:]]")
+
+str_replace_all(rs_all$Artist, "[&]", "and")
+str_replace_all(rs_all$Song, "[&]", "and")
+
+?str_to_lower
+?str_trim
+
+str_trim(rs_all$Artist)
+str_trim(rs_all$Song)
+
+str_to_lower(rs_all$Artist)
+str_to_lower(rs_all$Song)
 
 
 ### Question 4 ----------
@@ -76,6 +124,16 @@ load("rs_data.RData")
 
 #ANSWER
 
+new <- rs_all %>% filter(Source == "New")
+old <- rs_all %>% filter(Source == "Old")
+
+rs_joined<- full_join(rs_new, rs_old, by = join_by("Artist", "Song"), suffix = c("_New", "_Old"))
+                      
+?full_join
+
+nrow(rs_joined)
+
+nrow(rs_new1)
 
 ### Question 5 ----------
 
@@ -89,6 +147,19 @@ load("rs_data.RData")
 
 #ANSWER
 
+?str_remove
+
+str_remove_all(rs_joined$Source_New, "[New]")
+str_remove_all(rs_joined$Source_Old, "[Old]")
+
+str_remove_all(rs_joined$Rank_New, "[NA]")
+str_remove_all(rs_joined$Rank_Old, "[NA]")
+
+rs_joined$Rank_Change <- rs_joined$Rank_New - rs_joined$Rank_Old
+
+rs_joined
+
+
 
 ### Question 6 ----------
 
@@ -100,7 +171,14 @@ load("rs_data.RData")
 
 #ANSWER
 
+library(dplyr)
+library(janitor)
 
+rs_joined$decade <- floor(rs_joined$Year_New / 10) * 10
+
+mean(rs_joined$Rank_Change)
+
+#Decade that improved the most 1960's
 
 ### Question 7 ----------
 
@@ -111,6 +189,18 @@ load("rs_data.RData")
 
 #ANSWER
 
+fct_count(rs_joined$decade,  sort = TRUE, prop = TRUE)
+
+?fct_count
+
+?fct_lump
+
+fct_lump(rs_joined$decade, 3)
+
+rs_joined$decade3 <- fct_lump(factor(rs_joined$decade), 3)
+
+fct_count(rs_joined$decade3, sort = TRUE, prop = TRUE)
+
 
 
 ### Question 8 ---------- 
@@ -120,6 +210,12 @@ load("rs_data.RData")
 # Use parse_date_time to fix it
 
 #ANSWER
+
+library(lubridate)
+
+top20<- read_csv("/Users/AshMi/OneDrive/Desktop/R_Class/259-data-structure-hw/top_20.csv")
+
+top20$Release_date <- parse_date_time(top20$Release_date, orders = "ymd")
 
 
 ### Question 9 --------
